@@ -123,6 +123,7 @@ export class Pokemon {
 	lastItem: ID;
 	usedItemThisTurn: boolean;
 	ateBerry: boolean;
+	itemLocked: boolean;
 	// Gens 3-4 only
 	itemKnockedOff: boolean;
 
@@ -422,6 +423,7 @@ export class Pokemon {
 		this.usedItemThisTurn = false;
 		this.ateBerry = false;
 		this.itemKnockedOff = false;
+		this.itemLocked = false;
 
 		this.trapped = false;
 		this.maybeTrapped = false;

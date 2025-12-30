@@ -615,7 +615,7 @@ export const Items: import('../../../sim/dex-items').ModdedItemDataTable = {
 			return this.chainModify(1.5);
 		},
 		onUpdate(pokemon) {
-			if (pokemon.hp <= pokemon.maxhp / 3 && pokemon.itemState.used !== true) {
+			if (pokemon.hp <= pokemon.maxhp / 3 && !pokemon.itemLocked) {
 				this.add('-activate', pokemon, 'item: EpiPen');
 				let thisSideAllies = [];
 				for (const ally of pokemon.side.pokemon) {
@@ -628,13 +628,17 @@ export const Items: import('../../../sim/dex-items').ModdedItemDataTable = {
 				if (!thisSideAllies.length) {
 					this.heal(pokemon.maxhp * 0.75, pokemon);
 					if (pokemon.status) pokemon.cureStatus();
-					pokemon.itemState.used = true;
+					pokemon.itemLocked = true;
 					return;
 				}
 				pokemon.side.addSlotCondition(pokemon, 'epipen');
-				pokemon.itemState.used = true;
+				pokemon.itemLocked = true;
 				pokemon.switchFlag = true;
+				this.add('-message', `${pokemon.name} @ AFTER EPIPEN TRIGGER / pokemon.itemLocked = ${pokemon.itemLocked}`)
 			}
+		},
+		onResidual(pokemon) {
+			this.add('-message', `${pokemon.name} @ END OF TURN / pokemon.itemLocked = ${pokemon.itemLocked}`)
 		},
 		condition: {
 			// implemented in ../scripts.ts
