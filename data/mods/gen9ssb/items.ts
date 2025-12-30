@@ -634,11 +634,7 @@ export const Items: import('../../../sim/dex-items').ModdedItemDataTable = {
 				pokemon.side.addSlotCondition(pokemon, 'epipen');
 				pokemon.itemLocked = true;
 				pokemon.switchFlag = true;
-				this.add('-message', `${pokemon.name} @ AFTER EPIPEN TRIGGER / pokemon.itemLocked = ${pokemon.itemLocked}`)
 			}
-		},
-		onResidual(pokemon) {
-			this.add('-message', `${pokemon.name} @ END OF TURN / pokemon.itemLocked = ${pokemon.itemLocked}`)
 		},
 		condition: {
 			// implemented in ../scripts.ts
