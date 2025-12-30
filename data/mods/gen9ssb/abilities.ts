@@ -367,13 +367,8 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 		name: "Generosity",
 		gen: 9,
 		flags: {},
-		desc: "Ice/Water; Present becomes Ice-type/Special + Gives Charcoal; Life Dew heals unfainted party members 1/4 max HP; On switch out, summons Lucky Chant and cures allies of all status conditions. Upon fainting, summons Revival Blessing and grants permanent Helping Hand to all party members.",
+		desc: "Present becomes Ice-type/Special + Gives Charcoal; Life Dew heals unfainted party members 1/4 max HP; On switch out, summons Lucky Chant and cures allies of all status conditions. Upon fainting, summons Revival Blessing and grants permanent Helping Hand to all party members.",
 		shortDesc: "See '/ssb Saint Deli' for more!",
-		onStart(pokemon) {
-			if (pokemon.baseSpecies.baseSpecies === 'Delibird' && pokemon.setType(['Ice', 'Water'])) {
-				this.add('-start', pokemon, 'typechange', 'Ice/Water', '[from] ability: Generosity');
-			}
-		},
 		onUpdate(pokemon) {
 			const target = pokemon.side.foe.active[pokemon.side.foe.active.length - 1 - pokemon.position];
 			if (this.effectState.revivalBlessing && !pokemon.abilityState.rbProc) {
@@ -415,7 +410,6 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 			}
 		},
 		onSwitchOut(pokemon) {
-			this.add('-activate', pokemon, 'ability: Generosity');
 			pokemon.side.addSideCondition('luckychant');
 			let success = false;
 			const allies = [...pokemon.side.pokemon, ...pokemon.side.allySide?.pokemon || []];
@@ -433,7 +427,6 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 					// will be taken due to Gift Sack, giving you a free Revival Blessing.
 					if (target.abilityState.sack.length < 3) return;
 				}
-				this.add('-activate', target, 'ability: Generosity');
 				this.effectState.revivalBlessing = true;
 				return target.hp - 1;
 			}
