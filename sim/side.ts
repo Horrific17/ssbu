@@ -175,6 +175,9 @@ export class Side {
 	 * player per team can dynamax on any given turn of a gen 8 Multi Battle.
 	 */
 	dynamaxUsed: boolean;
+	hhBoost: boolean = false;
+	reviveOnSwitchIn: boolean = false;
+	lastMoveUsed: Move | null = null;
 
 	faintedLastTurn: Pokemon | null;
 	faintedThisTurn: Pokemon | null;
