@@ -1,7 +1,7 @@
 export const TypeChart: import('../../../sim/dex-data').ModdedTypeDataTable = {
 	light: {
 		damageTaken: {
-			Light: 2,
+			Light: 0,
 			Bug: 0,
 			Dark: 0,
 			Dragon: 0,
@@ -17,7 +17,7 @@ export const TypeChart: import('../../../sim/dex-data').ModdedTypeDataTable = {
 			Normal: 0,
 			Poison: 0,
 			Psychic: 0,
-			Rock: 1,
+			Rock: 0,
 			Steel: 1,
 			Stellar: 0,
 			Water: 1,
@@ -411,6 +411,7 @@ export const TypeChart: import('../../../sim/dex-data').ModdedTypeDataTable = {
 	rock: {
 		damageTaken: {
 			sandstorm: 3,
+			Light: 2,
 			Bug: 0,
 			Dark: 0,
 			Dragon: 0,
