@@ -222,8 +222,8 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			}
 		},
 		basePowerCallback(pokemon, target, move) {
-			if (!pokemon.abilityState.windup) return move.basePower;
-			let power = pokemon.abilityState.windup * 60;
+			if (!pokemon.m.windup) return move.basePower;
+			let power = pokemon.m.windup * 60;
 			return move.basePower + power;
 		},
 		onHit(target, source, move) {
@@ -231,18 +231,18 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 		},
 		onAfterMoveSecondarySelf(pokemon, target, move) {
 			if (!target || target.fainted || target.hp <= 0) {
-				pokemon.abilityState.homerun = true;
+				pokemon.m.homerun = true;
 				this.heal(pokemon.baseMaxhp * 0.35, pokemon);
 				this.add('-message', `It's a K.O.!\n${pokemon.name}'s Attack, Defense, and Special Defense increased!`);
 			}
-			if (pokemon.abilityState.windup) {
+			if (pokemon.m.windup) {
 				const boosts: SparseBoostsTable = {};
-				boosts.def = -pokemon.abilityState.windup;
-				boosts.spd = -pokemon.abilityState.windup;
+				boosts.def = -pokemon.m.windup;
+				boosts.spd = -pokemon.m.windup;
 				this.boost(boosts, pokemon, pokemon);
 			}
 			pokemon.deductPP('homerunswingwindup', 64);
-			pokemon.abilityState.windup = 0;
+			pokemon.m.windup = 0;
 		},
 		secondary: null,
 		type: "Ground",
@@ -270,8 +270,8 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 		onHit(target, source, move) {
 			this.boost({ def: 1, spd: 1 }, source, source);
 			if (!source.volatiles['homerunswingwindup']) source.addVolatile('homerunswingwindup');
-			if (!source.abilityState.windup) source.abilityState.windup = 0;
-			source.abilityState.windup++;
+			if (!source.m.windup) source.m.windup = 0;
+			source.m.windup++;
 			this.add('-message', `${source.name} is winding up!`);
 		},
 		condition: {
@@ -314,15 +314,15 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			this.add('-anim', pokemon, 'Sky Uppercut', pokemon);
 			const items = ['megamushroom', 'triplemushroom', 'tripleredshell', 'star', 'triplebanana', 'boo', 'powblock', 'spinyshell', 'triplegreenshell', 'blooper', 'bulletbill'];
 			const selectedItem = this.sample(items);
-			pokemon.abilityState.itemBox = selectedItem;
+			pokemon.m.itemBox = selectedItem;
 		},
 		onPrepareHit(target, source, move) {
-			if (!source.abilityState.itemBox) {
+			if (!source.m.itemBox) {
 				this.add('-fail', source, 'move: Item Box');
 				this.hint(`Error: No item selected on the backend for Item Box.\nContact the developer if you see this.`);
 				return null;
 			}
-			switch (source.abilityState.itemBox) {
+			switch (source.m.itemBox) {
 				case 'megamushroom':
 					this.add(`raw|<b>Mega Mushroom!</b>`);
 					source.addVolatile('megamushroom');
@@ -667,12 +667,12 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 				boost[randomStat] = 1;
 				this.boost(boost, source);
 			}
-			if (!source.abilityState.sack) source.abilityState.sack = [];
-			if (source.abilityState.sack.length) {
-				for (const storedMove of source.abilityState.sack) {
+			if (!source.m.sack) source.m.sack = [];
+			if (source.m.sack.length) {
+				for (const storedMove of source.m.sack) {
 					this.actions.useMove(storedMove, source, target);
 				}
-				source.abilityState.sack = [];
+				source.m.sack = [];
 				this.add('-message', `${source.name} emptied its Gift Sack!`);
 			}
 		},
@@ -1137,15 +1137,15 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			switch (pokemon.species.id) {
 				case 'zygardecomplete':
 					this.heal(pokemon.maxhp / 4, pokemon);
-					pokemon.abilityState.boostMod = 1.25;
+					pokemon.m.boostMod = 1.25;
 					break;
 				case 'zygarde':
 					this.heal(pokemon.maxhp / 2, pokemon);
-					pokemon.abilityState.boostMod = 1.5;
+					pokemon.m.boostMod = 1.5;
 					break;
 				case 'zygarde10':
 					this.heal(pokemon.maxhp * 0.75);
-					pokemon.abilityState.boostMod = 1.75;
+					pokemon.m.boostMod = 1.75;
 					break;
 			}
 			this.field.clearWeather();
@@ -1155,18 +1155,18 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 		condition: {
 			duration: 2,
 			onBasePower(basePower, source, target, move) {
-				if (source.abilityState.boostMod && source.abilityState.boostMod > 1) {
+				if (source.m.boostMod && source.m.boostMod > 1) {
 					this.add('-anim', source, 'Absorb', source);
 					this.add('-message', `${move.name} was powered up by Ecosystem Drain!`)
 					return this.chainModify(boostMod);
 				}
 			},
 			onAfterMove(pokemon) {
-				pokemon.abilityState.boostMod = false;
+				pokemon.m.boostMod = false;
 				pokemon.removeVolatile('ecosystemdrain');
 			},
 			onEnd(pokemon) {
-				if (pokemon.abilityState.boostMod) pokemon.abilityState.boostMod = false;
+				if (pokemon.m.boostMod) pokemon.m.boostMod = false;
 			},
 		},
 		secondary: null,
@@ -1234,7 +1234,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			this.add('-message', `${target.name} was encased by Genesis Ray!`);
 		},
 		onDamage(damage, target, source, effect) {
-			target.abilityState.grDamage = damage * 2;
+			target.m.grDamage = damage * 2;
 		},
 		volatileStatus: 'genesisray',
 		condition: {
@@ -1242,14 +1242,14 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			onTryMove(pokemon, target, move) {
 				if (move.flags['contact']) {
 					this.add('-anim', pokemon, 'Terrain Pulse', pokemon);
-					this.damage(pokemon.abilityState.grDamage, pokemon);
+					this.damage(pokemon.m.grDamage, pokemon);
 					this.add('-message', `${pokemon.name} was assaulted by Genesis Ray!`);
 					pokemon.removeVolatile('genesisray');
 				}
 			},
 			onSwitchOut(pokemon) {
 				this.add('-anim', pokemon, 'Terrain Pulse', pokemon);
-				this.damage(pokemon.abilityState.grDamage, pokemon);
+				this.damage(pokemon.m.grDamage, pokemon);
 				this.add('-message', `${pokemon.name} was assaulted by Genesis Ray!`);
 				pokemon.removeVolatile('genesisray');
 			},
@@ -1427,7 +1427,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 						moveSlot.pp = moveSlot.maxpp;
 					}
 				}
-				if (source.item === 'colossuscarrier') source.abilityState.carrierItems = [];
+				if (source.item === 'colossuscarrier') source.m.carrierItems = [];
 			} else {
 				this.add('-anim', source, 'Wake-Up Slap', source);
 				const ally = this.sample(source.side.pokemon);
@@ -1524,7 +1524,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 		condition: {
 			duration: 1,
 			onStart(pokemon) {
-				pokemon.abilityState.dollhp = Math.floor(pokemon.maxhp / 4);
+				pokemon.m.dollhp = Math.floor(pokemon.maxhp / 4);
 				this.add('-message', `${pokemon.name} summoned a Killing Doll!`);
 				if (pokemon.volatiles['partiallytrapped']) {
 					this.add('-end', pokemon, pokemon.volatiles['partiallytrapped'].sourceEffect, '[partiallytrapped]', '[silent]');
@@ -1545,15 +1545,15 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 				}
 				this.add('-anim', target, 'Spectral Thief', source);
 				this.damage(damage, source, target, 'move: Killing Doll');
-				if (damage > target.abilityState.dollhp) {
-					damage = target.abilityState.dollhp as number;
+				if (damage > target.m.dollhp) {
+					damage = target.m.dollhp as number;
 				}
-				target.abilityState.dollhp -= damage;
+				target.m.dollhp -= damage;
 				source.lastDamage = damage;
-				if (target.abilityState.dollhp <= 0) {
+				if (target.m.dollhp <= 0) {
 					if (move.ohko) this.add('-ohko');
 					target.removeVolatile('killingdoll');
-					target.abilityState.dollhp = 0;
+					target.m.dollhp = 0;
 				} else {
 					this.add('-activate', target, 'move: Killing Doll', '[damage]');
 				}
@@ -1566,10 +1566,10 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 				return this.HIT_SUBSTITUTE;
 			},
 			onResidual(pokemon) {
-				if (pokemon.abilityState.dollhp > 0) {
+				if (pokemon.m.dollhp > 0) {
 					this.add('-anim', pokemon, 'Hex', pokemon);
 					this.add('-message', `Killing Doll haunts the battlefield!`);
-				} else if (!pokemon.abilityState.dollhp || pokemon.abilityState.dollhp <= 0) {
+				} else if (!pokemon.m.dollhp || pokemon.m.dollhp <= 0) {
 					this.add('-end', pokemon, 'Killing Doll', '[silent]');
 					pokemon.removeVolatile('killingdoll');
 					this.add('-anim', pokemon, 'Confuse Ray', pokemon);
@@ -1742,7 +1742,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			let stacks = Math.floor(loss/max)
 			if (stacks < 1) stacks = 1;
 			if (stacks > 9) stacks = 9;
-			pokemon.abilityState.stacks = stacks;
+			pokemon.m.stacks = stacks;
 
 			pokemon.addVolatile('protect');
 			pokemon.addVolatile('turbocharge');
@@ -1757,19 +1757,19 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			},
 			onModifyAtkPriority: 5,
 			onModifyAtk(atk, pokemon) {
-				if (pokemon.abilityState.stacks <= 0) return;
-				let boost = 1 + 0.1 * pokemon.abilityState.stacks;
+				if (pokemon.m.stacks <= 0) return;
+				let boost = 1 + 0.1 * pokemon.m.stacks;
 				return this.chainModify(boost);
 			},
 			onModifySpAPriority: 5,
 			onModifySpA(spa, pokemon) {
-				if (pokemon.abilityState.stacks <= 0) return;
-				let boost = 1 + 0.1 * pokemon.abilityState.stacks;
+				if (pokemon.m.stacks <= 0) return;
+				let boost = 1 + 0.1 * pokemon.m.stacks;
 				return this.chainModify(boost);
 			},
 			onModifySpe(spe, pokemon) {
-				if (pokemon.abilityState.stacks <= 0) return;
-				let boost = 1 + 0.1 * pokemon.abilityState.stacks;
+				if (pokemon.m.stacks <= 0) return;
+				let boost = 1 + 0.1 * pokemon.m.stacks;
 				return this.chainModify(boost);
 			},
 			onTryHeal(damage, target, source, effect) {
@@ -1780,9 +1780,9 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 				// Prevent charge from wearing off immediately after Turbocharge is used
 				// It should start at X stacks and should not begin to deplete until one
 				// full turn cycle has passed.
-				if (this.effectState.turnUsed !== this.turn) pokemon.abilityState.stacks--;
-				if (pokemon.abilityState.stacks <= 0) {
-					pokemon.abilityState.stacks = 0;
+				if (this.effectState.turnUsed !== this.turn) pokemon.m.stacks--;
+				if (pokemon.m.stacks <= 0) {
+					pokemon.m.stacks = 0;
 					this.add('-message', `${pokemon.name}'s turbocharge wore off!`);
 					pokemon.removeVolatile('turbocharge');
 					return;
@@ -1791,7 +1791,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 				this.add('-message', `${pokemon.name} is turbocharged!`);
 			},
 			onSwitchOut(pokemon) {
-				pokemon.abilityState.stacks = 0;
+				pokemon.m.stacks = 0;
 				pokemon.removeVolatile('turbocharge');
 			},
 		},
@@ -1933,7 +1933,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 		},
 		onHit(target, source, move) {
 			source.clearBoosts();
-			source.abilityState.wagerStacks = 0;
+			source.m.wagerStacks = 0;
 			this.heal(source.baseMaxhp, source);
 			changeSet(this, source, ssbSets['Croupier'], true);
 		},
@@ -2061,8 +2061,8 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 
 			if (myRoll >= yourRoll) {
 				this.add('-message', `Better luck next time!`);
-				pokemon.abilityState.wagerStacks *= 3;
-				if (pokemon.abilityState.wagerStacks > 18) pokemon.abilityState.wagerStacks = 18;
+				pokemon.m.wagerStacks *= 3;
+				if (pokemon.m.wagerStacks > 18) pokemon.m.wagerStacks = 18;
 				this.add('-anim', pokemon, 'Celebrate', pokemon);
 				this.add('-anim', pokemon, 'Shadow Ball', target);
 				this.effectState.forcingSwitch = true;
@@ -2070,7 +2070,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			} else {
 				this.add('-message', `Can't win 'em all!`);
 				this.add('-anim', pokemon, 'Splash', pokemon);
-				for (let i = 0; i < pokemon.abilityState.wagerStacks; i++) {
+				for (let i = 0; i < pokemon.m.wagerStacks; i++) {
 					const stats: BoostID[] = [];
 					let stat: BoostID;
 					for (stat in target.boosts) {
@@ -2085,9 +2085,9 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 						this.boost(boost, target);
 					}
 				}
-				this.add('-message', `${target.name} received ${pokemon.abilityState.wagerStacks} boosts for each of ${pokemon.name}'s ${pokemon.abilityState.wagerStacks} wager stacks!`);
+				this.add('-message', `${target.name} received ${pokemon.m.wagerStacks} boosts for each of ${pokemon.name}'s ${pokemon.m.wagerStacks} wager stacks!`);
 				this.add('-message', `${pokemon.name} lost their wager!`);
-				pokemon.abilityState.wagerStacks = 0;
+				pokemon.m.wagerStacks = 0;
 				return 0;
 			}
 		},
@@ -2119,7 +2119,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			const roll = this.random(1, 6);
 			this.add('-message', `${pokemon.name} rolled a ${roll}!`);
 			this.add('-message', `${pokemon.name} scored ${roll} wager stacks!`);
-			pokemon.abilityState.wagerStacks += roll;
+			pokemon.m.wagerStacks += roll;
 			switch (roll) {
 				case 1:
 					const stats: BoostID[] = [];
@@ -2145,10 +2145,10 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 				case 5:
 					return 100;
 				case 6:
-					pokemon.abilityState.wagerStacks = 0;
+					pokemon.m.wagerStacks = 0;
 					this.heal(pokemon.baseMaxhp, pokemon);
 					this.boost({ atk: 1, def: 1, spa: 1, spd: 1, spe: 1 }, pokemon);
-					pokemon.abilityState.luckySix = true;
+					pokemon.m.luckySix = true;
 					changeSet(this, pokemon, ssbSets['Faust'], true);
 					return 80;
 			}
@@ -2178,7 +2178,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			this.add('-anim', source, 'Belly Drum', source);
 		},
 		onHit(target, source, move) {
-			source.abilityState.wagerStacks++;
+			source.m.wagerStacks++;
 			this.add('-message', `${source.name} saved a wager stack!`);
 			target.addVolatile('taunt');
 			target.addVolatile('torment');
@@ -2257,17 +2257,17 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 		onPrepareHit(target, source, move) {
 			this.add('-anim', source, 'Hurricane', source);
 			this.add('-anim', source, 'Thunder', target);
-			if (!source.abilityState.static) {
+			if (!source.m.static) {
 				this.debug('insufficient charge for big thunder');
 				return false;
 			}
 		},
 		onHit(target, source, move) {
 			target.side.addSideCondition('bigthunder');
-			target.side.sideConditions['bigthunder'].duration = source.abilityState.static;
+			target.side.sideConditions['bigthunder'].duration = source.m.static;
 			target.side.sideConditions['bigthunder'].source = source;
 			target.side.sideConditions['bigthunder'].move = move;
-			source.abilityState.static = null;
+			source.m.static = null;
 		},
 		condition: {
 			onResidual(pokemon) {
@@ -2304,13 +2304,13 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 		},
 		onPrepareHit(target, source) {
 			if (!this.field.isTerrain("electricterrain") ||
-			!source.abilityState.gauges) return null;
+			!source.m.gauges) return null;
 
 			this.add('-anim', source, 'Parabolic Charge', source);
 			this.add('-anim', source, 'Electro Shot', target);
 		},
 		onHit(source) {
-			source.abilityState.gauges = 0;
+			source.m.gauges = 0;
 			let newAbility = this.dex.abilities.get('electromorphosis');
 			const abilitySet = source.setAbility(newAbility);
 			if (abilitySet) {
@@ -2361,7 +2361,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 				if (pokemon.species.id === 'mimikyu') {
 					const targetSide = pokemon.side.foe.active[0].side;
 					pokemon.formeChange('Mimikyu-Busted');
-					pokemon.abilityState.dollDur = 3;
+					pokemon.m.dollDur = 3;
 					pokemon.hp = pokemon.baseMaxhp;
 					this.add('-heal', pokemon, pokemon.getHealth, '[silent]');
 					targetSide.addSideCondition('Cursed Doll', pokemon);
@@ -2395,7 +2395,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			duration: 1,
 			onStart(target, source, effect) {
 				this.add('-start', target, 'Orb Shield');
-				target.abilityState.orbHp = Math.floor(target.maxhp / 4);
+				target.m.orbHp = Math.floor(target.maxhp / 4);
 				if (target.volatiles['partiallytrapped']) {
 					this.add('-end', target, target.volatiles['partiallytrapped'].sourceEffect, '[partiallytrapped]', '[silent]');
 					delete target.volatiles['partiallytrapped'];
@@ -2403,18 +2403,18 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			},
 			onTryPrimaryHitPriority: -1,
 			onTryPrimaryHit(target, source, move) {
-				if (target === source || move.flags['bypasssub'] || move.infiltrates || !target.abilityState.orbHp) return;
+				if (target === source || move.flags['bypasssub'] || move.infiltrates || !target.m.orbHp) return;
 				// @ts-ignore
 				const damage = this.actions.getDamage(source, target, move);
 				if (!damage) {
 					this.add('-message', `${target.name} was protected by Orb Shield!`);
 					return null;
 				}
-				if (damage < target.abilityState.orbHp) {
-					target.abilityState.orbHp -= damage;
+				if (damage < target.m.orbHp) {
+					target.m.orbHp -= damage;
 					this.add('-activate', target, 'move: Orb Shield', '[damage]');
-				} else if (damage >= target.abilityState.orbHp) {
-					target.abilityState.orbHp = 0;
+				} else if (damage >= target.m.orbHp) {
+					target.m.orbHp = 0;
 					target.removeVolatile('orbshield');
 					this.add('-message', `${target.name}'s Orb Shield broke!`);
 				}
@@ -2424,9 +2424,9 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			},
 			onEnd(pokemon) {
 				const target = pokemon.side.foe.active[pokemon.side.foe.active.length - 1 - pokemon.position];
-				if (pokemon.abilityState.orbHp) this.damage(80, target, pokemon);
+				if (pokemon.m.orbHp) this.damage(80, target, pokemon);
 				this.add('-end', pokemon, 'Orb Shield');
-				pokemon.abilityState.orbHp = 0;
+				pokemon.m.orbHp = 0;
 			},
 		},
 		secondary: null,
@@ -2558,11 +2558,11 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 				this.add('-ability', target, 'Normalize', '[from] move: You Filthy Peasant');
 			}
 			this.add('-start', target, 'typechange', 'Normal');
-			pokemon.abilityState.turnLastUsed = this.turn;
+			pokemon.m.turnLastUsed = this.turn;
 			return oldAbility as false | null;
 		},
 		onDisableMove(pokemon) {
-			if (this.turn - pokemon.abilityState.turnLastUsed < 5) pokemon.disableMove('youfilthypeasant');
+			if (this.turn - pokemon.m.turnLastUsed < 5) pokemon.disableMove('youfilthypeasant');
 		},
 		secondary: null,
 		target: "normal",
@@ -2619,13 +2619,13 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			this.add('-anim', source, 'Splash', source);
 		},
 		onHit(pokemon) {
-			if (!pokemon.abilityState.enhancement) pokemon.abilityState.enhancement = 0;
-			if (pokemon.abilityState.enhancement >= 3) {
+			if (!pokemon.m.enhancement) pokemon.m.enhancement = 0;
+			if (pokemon.m.enhancement >= 3) {
 				this.add('-message', `${pokemon.name}'s weapon is already at maximum enhancement!`);
 				return;
 			}
-			if (pokemon.abilityState.enhancement < 3) {
-				pokemon.abilityState.enhancement += 1;
+			if (pokemon.m.enhancement < 3) {
+				pokemon.m.enhancement += 1;
 				this.add('-message', `${pokemon.name} is strengthening their weapon!`);
 			}
 		},
@@ -2849,12 +2849,12 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			this.add('-message', `${source.name} tossed the Inconspicuous Coin at ${target.name}!`);
 			this.damage(target.maxhp / this.random(6, 10), target, source);
 			source.addVolatile('coinclash');
-			source.abilityState.recallActive = true;
+			source.m.recallActive = true;
 			if (this.randomChance(1, 2)) {
 				this.add('-message', `Hey! The coin landed on heads!`);
 				this.add('-message', `${source.name} is fired up!`);
 				this.heal(source.maxhp / this.random(4, 8));
-				source.abilityState.firedUp = true;
+				source.m.firedUp = true;
 			}
 		},
 		condition: {
@@ -2871,7 +2871,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 				if (pokemon.item || pokemon.name !== 'Gizmo') return;
 				pokemon.setItem('inconspicuouscoin');
 				this.add('-item', pokemon, pokemon.getItem(), '[from] item: Inconspicuous Coin');
-				pokemon.abilityState.recallActive = false;
+				pokemon.m.recallActive = false;
 			},
 		},
 		multihit: [3, 5],
@@ -2891,7 +2891,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 		flags: { protect: 1 },
 		onTryMove(pokemon, target, move) {
 			this.attrLastMove('[still]');
-			if (!pokemon.abilityState.coins) {
+			if (!pokemon.m.coins) {
 				this.add('-message', `${pokemon.name} used Capital Cannon...`)
 				this.add('-anim', pokemon, 'Splash', pokemon);
 				this.add('-message', `...but couldn't shoot from an empty cannon!`);
@@ -2899,27 +2899,27 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			}
 		},
 		onPrepareHit(target, source) {
-			if (!source.abilityState.coins) return;
+			if (!source.m.coins) return;
 			this.add('-anim', source, 'Taunt', target);
 			this.add('-anim', source, 'Steel Beam', target);
 		},
 		basePowerCallback(pokemon, target, move) {
-			if (!pokemon.abilityState.coins) return;
-			if (pokemon.abilityState.coins > 10) {
+			if (!pokemon.m.coins) return;
+			if (pokemon.m.coins > 10) {
 				// Capital Cannon only uses up to 10 coins at a time
 				return 200;
 			} else {
-				return 20 * pokemon.abilityState.coins;
+				return 20 * pokemon.m.coins;
 			}
 		},
 		onEffectiveness(typeMod, target, type) {
 			return 0;
 		},
 		onHit(target, source, move) {
-			if (source.abilityState.coins > 10) {
-				source.abilityState.coins -= 10;
+			if (source.m.coins > 10) {
+				source.m.coins -= 10;
 			} else {
-				source.abilityState.coins = 0;
+				source.m.coins = 0;
 			}
 		},
 		secondary: null,
@@ -3365,10 +3365,10 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 		},
 		onHit(target, source, move) {
 			for (const foe of target.side.pokemon) {
-				if (foe.abilityState.ran) foe.abilityState.ran = false;
+				if (foe.m.ran) foe.m.ran = false;
 			}
 			target.addVolatile('shikigamiran');
-			target.abilityState.ran = true;
+			target.m.ran = true;
 		},
 		condition: {
 			onResidual(pokemon) {
