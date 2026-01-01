@@ -2601,13 +2601,11 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 		type: "Normal",
 		target: "normal",
 		onPrepareHit(pokemon) {
+			this.add('-anim', source, "King's Shield", source);
 			return !!this.queue.willAct() && this.runEvent('StallMove', pokemon);
 		},
 		onTryMove(target, source) {
 			this.attrLastMove('[still]');
-		},
-		onPrepareHit(target, source) {
-			this.add('-anim', source, "King's Shield", source);
 		},
 		onHit(target, source, move) {
 			// Permanently swap Speed with the target (sticks after switching)
