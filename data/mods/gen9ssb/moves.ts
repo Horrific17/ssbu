@@ -2677,7 +2677,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 		type: "Normal",
 		target: "normal",
 		onPrepareHit(pokemon) {
-			this.add('-anim', source, "King's Shield", source);
+			this.add('-anim', pokemon, "King's Shield", pokemon);
 			return !!this.queue.willAct() && this.runEvent('StallMove', pokemon);
 		},
 		onTryMove(target, source) {
