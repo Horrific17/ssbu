@@ -3189,9 +3189,6 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 				this.actions.useMove('Revival Blessing', pokemon);
 			}
 		},
-		onHit(target, source, move) {
-			source.side.lastMoveUsed = move.id;
-		},
 		onUpdate() {
 			for (const pokemon of this.getAllPokemon()) {
 				if (pokemon.species.id === 'ironthorns' && pokemon.getAbility().id === 'autorepair' && !pokemon.hp && !pokemon.abilityState.reviveStarted) {

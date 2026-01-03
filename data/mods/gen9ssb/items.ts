@@ -1,4 +1,41 @@
 export const Items: import('../../../sim/dex-items').ModdedItemDataTable = {
+	// Graaz
+	themightycloth: {
+		name: "The Mighty Cloth",
+		desc: "If the holder uses Rage, and its less than 80 base power, it becomes 80 base power. Bull Rush is added to the holder's moveset and can be used once per switch-in.",
+		shortDesc: "Rage: 20 -> 80 BP. Holder can use Bull Rush.",
+		gen: 9,
+		onStart(pokemon) {
+			this.add('-anim', pokemon, 'Bulk Up');
+			this.add('-message', `${pokemon.name} boasts The Mighty Cloth!`);
+
+			const newMove = this.dex.moves.get('bullrush');
+			const newSlot = {
+				move: newMove.name,
+				id: newMove.id,
+				target: newMove.target,
+				disabled: false,
+				used: false,
+				pp: 1,
+				maxpp: 1,
+			};
+			pokemon.moveSlots[pokemon.moveSlots.length] = newSlot;
+			pokemon.baseMoveSlots[pokemon.moveSlots.length] = newSlot;
+		},
+		onBasePower(basePower, user, target, move) {
+			if (move.id === 'rage' && basePower < 80) {
+				return 80;
+			}
+		},
+		onAfterMoveSecondarySelf(source, target, move) {
+			// Once per switch-in; forget Bull Rush after use, relearn on next switch-in.
+			if (move.id === 'bullrush') {
+				const moveIndex = source.moves.indexOf('bullrush');
+				if (moveIndex < 0) return false;
+				delete source.moveSlots[moveIndex];
+			}
+		},
+	},
 	// Neptune
 	stormtalisman: {
 		name: "Storm Talisman",

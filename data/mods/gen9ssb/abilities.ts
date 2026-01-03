@@ -15,6 +15,25 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 	},
 	*/
 	// Please keep abilities organized alphabetically based on staff member name!
+	// Graaz
+	feralinstinct: {
+		gen: 9,
+		name: "Feral Instinct",
+		desc: "Raises this Pokemon's Speed by 1 when switching in or gaining Feral Instinct. This Pokemon cannot be flinched or confused. This Pokemon takes 3/4 damage from Fighting-type attacks.",
+		shortDesc: "+1 SPE/Cannot be flinched/confused; 3/4 damage from Fighting.",
+		onCriticalHit: false,
+		onStart(pokemon) {
+			this.boost({spe: 1}, pokemon, pokemon, this.dex.abilities.get('feralinstinct'));
+		},
+		onSourceModifyDamage(damage, source, target, move) {
+			if (move.type === 'Fighting') {
+				return this.chainModify(0.75);
+			}
+		},
+		onTryAddVolatile(status, pokemon) {
+			if (status.id === 'confusion') return null;
+		},
+	},
 	// Roughskull
 	venomshock: {
 		name: "Venom Shock",
@@ -1893,35 +1912,55 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 	woventogethercohereforever: {
 		name: "Woven Together, Cohere Forever",
 		gen: 9,
-		desc: "Whenever this Pokemon uses a Flying-type move, it hits for the next three turns using the typing of your team's last used move before the Flying-type move. Opposing Pokemon take x1.4 damage from attacks of this typing for three turns.",
-		shortDesc: "Flying moves hit for 3-turns using team's last attack type.",
+		desc: "When using Blissful Breeze, this Pokémon absorbs the typing of the last move used by itself or its allies, dealing an additional instance of 80 BP damage based on the typing absorbed and applying Silken Drafts to the opposing side. The additional instance of damage lasts for three turns and only one may exist at a time. Using Blissful Breeze while this effect is active will refresh its duration. Silken Drafts increases the damage taken from moves of the absorbed typing by 40%. This effect lasts for five turns.",
+		shortDesc: "See '/ssb Aeri' for more!",
 		onBeforeMovePriority: 9,
 		onBeforeMove(pokemon) {
 			if (!pokemon.side.lastMoveUsed) return;
 			this.effectState.lastMoveType = pokemon.side.lastMoveUsed.type;
 		},
-		onModifyMove(move, pokemon, target) {
-			if (move.type === 'Flying' && pokemon.side.lastMoveUsed) {
-				if (!target.side.addSideCondition('woventogethercohereforever')) return;
-				target.side.addSideCondition('woventogethercohereforever');
-				target.side.sideConditions['woventogethercohereforever'].type = this.effectState.lastMoveType;
+		onAfterMoveSecondarySelf(source, target, move) {
+			if (move.id === 'blissfulbreeze') {
+				const breezeActive = target.side.sideConditions['woventogethercohereforever']
+				const draftsActive = source.side.sideConditions['silkendrafts']
+
+				// If breeze is already active, simply reset duration. If it's not active,
+				// set the this.effectState.type value and start the condition.
+				if (breezeActive) {
+					target.side.sideConditions['woventogethercohereforever'].duration = 3;
+				} else {
+					target.side.addSideCondition('woventogethercohereforever');
+					if (this.effectState.lastMoveType) {
+						target.side.sideConditions['woventogethercohereforever'].type = this.effectState.lastMoveType;
+					} else {
+						target.side.sideConditions['woventogethercohereforever'].type = 'Flying';
+					}
+				}
+
+				// Repeat for Silken Drafts, as its duration is 5 instead of 3
+				if (draftsActive) {
+					source.side.sideConditions['silkendrafts'].duration = 5;
+				} else {
+					source.side.addSideCondition('silkendrafts');
+					this.add('-message', `drafts started, determining type; right now this.effectState.lastMoveType = ${this.effectState.lastMoveType}`);
+					if (this.effectState.lastMoveType) {
+						source.side.imprintType = this.effectState.lastMoveType;
+					} else {
+						source.side.imprintType = 'Flying';
+					}
+					this.add('-message', `thus, source.side.imprintType is now ${source.side.imprintType}`);
+				}	
 			}
+		},
+		onResidual(pokemon) {
+			this.add('-message', `${pokemon.name} effectState type = ${this.effectState.type}}`);
 		},
 		condition: {
 			duration: 3,
-			onDamagePriority: 1,
-			onDamage(damage, target, source, effect) {
-				if (effect.effectType === 'Move') {
-					let move = this.dex.getActiveMove(effect.id);
-					if (move.type === this.effectState.type) {
-						this.debug('wtcf 1.4 damage boost due to typing match');
-						return damage * 1.4;
-					}
-				}
-			},
 			onResidual(pokemon) {
-				let sources = pokemon.side.foe.pokemon.filter(ally => ally.ability === 'woventogethercohereforever');
-				let source = sources[0];
+				let source; let possibleSources = pokemon.side.foe.pokemon.filter(ally => ally.ability === 'woventogethercohereforever');
+				if (possibleSources.length) source = possibleSources[0];
+				if (!possibleSources.length) source = pokemon.side.foe.active[0];
 				let move = this.dex.getActiveMove('blissfulbreeze');
 				move.type = this.effectState.type;
 				this.add('-anim', pokemon, 'Geomancy', pokemon);
@@ -1929,21 +1968,6 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 				const damage = this.actions.getDamage(source, pokemon, move);
 				this.damage(damage * 1.4, pokemon, source, this.dex.conditions.get('Woven Together, Cohere Forever'));
 			},
-		},
-	},
-	// Glint
-	augmentthegiants: {
-		name: "Augment the Giants",
-		gen: 9,
-		onBeforeMove(pokemon, target, move) {
-			if (move.category !== 'Physical') return;
-			this.add('-activate', pokemon, 'ability: Augment the Giants');
-			changeSet(this, pokemon, ssbSets['Glint-Melmetal']);
-		},
-		onAfterMove(source, target, move) {
-			if (source.species.id === 'meltan') return;
-			this.add('-activate', source, 'ability: Augment the Giants');
-			changeSet(this, source, ssbSets['Glint']);
 		},
 	},
 	// Finger

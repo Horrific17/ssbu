@@ -443,6 +443,7 @@ export const Scripts: ModdedBattleScriptsData = {
 				sourceEffect: action.sourceEffect, zMove: action.zmove,
 				maxMove: action.maxMove, originalTarget: action.originalTarget,
 			});
+			action.pokemon.side.lastMoveUsed = action.move;
 			break;
 		case 'megaEvo':
 			this.actions.runMegaEvo(action.pokemon);

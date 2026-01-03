@@ -177,7 +177,10 @@ export class Side {
 	dynamaxUsed: boolean;
 	hhBoost: boolean = false;
 	reviveOnSwitchIn: boolean = false;
-	lastMoveUsed: Move | string | null = null;
+	lastMoveUsed: Move | null = null;
+	// Used for Blissful Breeze in gen9ssb. Defaults to Flying in all cases, and
+	// changes are handled manually in gen9ssb code.
+	imprintType: string = 'Flying';
 
 	faintedLastTurn: Pokemon | null;
 	faintedThisTurn: Pokemon | null;

@@ -90,6 +90,14 @@ export const ssbSets: SSBSets = {
 		signatureMove: 'Coin Clash',
 		evs: { hp: 252, atk: 252, def: 252, spa: 252, spd: 252, spe: 252 }, nature: 'Jolly',
 	},
+	/*
+	Graaz: {
+		species: 'Exploud', ability: 'Feral Instinct', item: 'The Mighty Cloth', gender: 'M',
+		moves: ['Rage', 'Circle Throw', 'Thunderous Kick'],
+		signatureMove: 'Wild Magic Frenzy',
+		evs: { hp: 224, atk: 252, spe: 32 }, nature: 'Adamant',
+	},
+	*/
 	'Kaiser Dragon': {
 		species: 'Rayquaza', ability: 'Elemental Shift', item: 'Leftovers', gender: 'N',
 		moves: ['Splash', 'Celebrate', 'Hold Hands'],

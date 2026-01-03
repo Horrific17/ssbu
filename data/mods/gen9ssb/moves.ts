@@ -41,6 +41,82 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 	},
 	*/
 	// Please keep sets organized alphabetically based on staff member name!
+	// Graaz
+	wildmagicfrenzy: {
+		name: "Wild Magic Frenzy",
+		category: "Status",
+		gen: 9,
+		basePower: 0,
+		accuracy: true,
+		pp: 5,
+		priority: 0,
+		flags: { metronome: 1 },
+		volatileStatus: 'wildmagicfrenzy',
+		onTryMove(target, source, move) {
+			this.attrLastMove('[still]');
+		},
+		onPrepareHit(target, source, move) {
+			this.add('-anim', source, 'Work Up');
+			this.add('-anim', source, 'Fire Punch', source);
+			this.add('-anim', source, 'Thunder Punch', source);
+			this.add('-anim', source, 'Boomburst');
+		},
+		condition: {
+			duration: 3,
+			onStart(pokemon) {
+				this.add('-message', `${pokemon.name} is enraged!`);
+			},
+			onModifySTAB(stab, source, target, move) {
+				if (source !== target && move.category === 'Physical' && stab < 1.5) {
+					this.debug('wild magic frenzy adding stab to nonstab move');
+					return 1.5;
+				}
+			},
+			onEffectiveness(typeMod, target, type, move) {
+				if (!target) return;
+				if (move.category === 'Physical' && typeMod )
+				return 0;
+			},
+		},
+		secondary: null,
+		type: "Fire",
+		target: "self",
+	},
+	// Graaz
+	bullrush: {
+		name: "Bull Rush",
+		category: "Physical",
+		gen: 9,
+		basePower: 60,
+		accuracy: true,
+		desc: "Usually goes first. 10% chance to flinch. 40% chance to flinch instead if hitting an ally.",
+		shortDesc: "+1 priority. Foes/10% flinch. Allies/40% flinch.",
+		pp: 10,
+		priority: 1,
+		flags: { protect: 1, metronome: 1, contact: 1 },
+		onTryMove(target, source, move) {
+			this.attrLastMove('[still]');
+		},
+		onPrepareHit(target, source, move) {
+			this.add('-anim', source, 'Stomping Tantrum', source);
+			this.add('-anim', source, 'Extreme Speed', target);
+			if (!move.secondaries) move.secondaries = [];
+			if (target.side === source.side) {
+				move.secondaries.push({
+					chance: 40,
+					volatileStatus: 'flinch',
+				});
+			} else {
+				move.secondaries.push({
+					chance: 10,
+					volatileStatus: 'flinch',
+				});
+			}
+		},
+		secondary: null,
+		type: "Ground",
+		target: "normal",
+	},
 	// Roughskull
 	radiationstench: {
 		name: "Radiation Stench",
