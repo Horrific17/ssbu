@@ -2933,7 +2933,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 		onPrepareHit(target, source) {
 			this.add('-anim', source, 'Glare', target);
 			this.add('-anim', source, 'Night Shade', target);
-			this.add('-anim', target, 'Spectral Thief', target);
+			this.add('-anim', target, 'Hex', target);
 		},
 		onHit(target, source, move) {
 			target.side.addSideCondition('curseofthehands', source, move)
@@ -2944,7 +2944,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 				this.damage(pokemon.maxhp / 16, pokemon);
 			},
 			onTryHeal(damage, target, source, effect) {
-				this.add('-message', `${target.name} `);
+				this.add('-message', `${target.name} couldn't muster up the strength to heal!`);
 				return false;
 			},
 		},
