@@ -1887,18 +1887,13 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 					source.side.sideConditions['silkendrafts'].duration = 5;
 				} else {
 					source.side.addSideCondition('silkendrafts');
-					this.add('-message', `drafts started, determining type; right now this.effectState.lastMoveType = ${this.effectState.lastMoveType}`);
 					if (this.effectState.lastMoveType) {
 						source.side.imprintType = this.effectState.lastMoveType;
 					} else {
 						source.side.imprintType = 'Flying';
 					}
-					this.add('-message', `thus, source.side.imprintType is now ${source.side.imprintType}`);
 				}	
 			}
-		},
-		onResidual(pokemon) {
-			this.add('-message', `${pokemon.name} effectState type = ${this.effectState.type}}`);
 		},
 		condition: {
 			duration: 3,
