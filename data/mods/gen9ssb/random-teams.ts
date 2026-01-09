@@ -44,7 +44,7 @@ export const ssbSets: SSBSets = {
 	},
 	Aevum: {
 		species: 'Calyrex', ability: 'Temporal Domain', item: 'Rewind Watch', gender: 'M',
-		moves: ['Matcha Gotcha', 'Freezing Glare', 'Earth Power'],
+		moves: ['Matcha Gotcha', 'Roar of Time', 'Earth Power'],
 		signatureMove: 'Genesis Ray',
 		evs: { hp: 4, spa: 252, spe: 252 }, nature: 'Timid',
 	},
