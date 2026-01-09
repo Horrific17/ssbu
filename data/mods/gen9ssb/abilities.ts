@@ -218,7 +218,11 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 		desc: "This Pokemon becomes Dark/Bug. It disguises itself as the last unfainted Pokemon in its party until hit by a damaging move. While disguised, it takes 25% less damage. Its contact moves have a 30% chance to inflict Bleeding (Ghost immune). If it uses Glare on an already-paralyzed target, it inflicts Brainwashed (Psychic immune). Bite moves drain 50% (25% in Frenzy). If it has no item, it gains Blood Packs when switching out.",
 		onStart(pokemon) {
 			pokemon.setType(['Dark', 'Bug']);
-			this.add('-start', pokemon, 'typechange', 'Dark/Bug', '[from] ability: Hemolust');
+			if (!(pokemon as any).illusion) {
+				this.add('-start', pokemon, 'typechange', 'Dark/Bug', '[silent]');
+			} else {
+				(pokemon.m as any).hemolustRevealTypeLater = true;
+			}
 			this.effectState.glareWasAlreadyPar = false;
 		},
 		// Set disguise when coming in
@@ -230,7 +234,6 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 			}
 			if (illusion) {
 				(pokemon as any).illusion = illusion;
-				this.add('-activate', pokemon, 'ability: Hemolust', '[illusion]');
 			}
 		},
 		// 25% less damage taken while illusion is active
@@ -247,7 +250,10 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 			const details = (target as any).getUpdatedDetails();
 			this.add('replace', target, details);
 			this.add('-end', target, 'Illusion');
-			this.add('-message', `${target.name}'s illusion faded!`);
+			if ((target.m as any).hemolustRevealTypeLater) {
+				this.add('-start', target, 'typechange', 'Dark/Bug', '[silent]');
+				(target.m as any).hemolustRevealTypeLater = false;
+			}
 		},
 		// Record whether the Glare target was already paralyzed BEFORE the move lands
 		onTryHit(target, source, move) {
@@ -286,12 +292,13 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 		onSwitchOut(pokemon) {
 			// Clear disguise on leave
 			if ((pokemon as any).illusion) (pokemon as any).illusion = null;
+			(pokemon.m as any).hemolustRevealTypeLater = false;
 			if (!pokemon.item && pokemon.species.id === 'gligar' && !pokemon.fainted) {
 				pokemon.setItem('bloodpacks');
 				this.add('-item', pokemon, 'Blood Packs', '[from] ability: Hemolust');
 			}
 		},
-	},	
+	},
 	// Cinque
 	cheerleader: {
 		name: "Cheerleader",
