@@ -438,6 +438,143 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 			},
 		},
 	},
+	//Toshiro
+	daigurenhyorinmaru: {
+		name: "Daiguren Hyorinmaru",
+		gen: 9,
+		flags: {notrace: 1, failroleplay: 1, noreceiver: 1, noentrain: 1, failskillswap: 1},
+		shortDesc: "Lotus Flowers (12). Stat scaling + freezes. Lotus drains on-field, regens off-field.",
+		desc: "Starts with 12 Lotus Flowers. +10% to Atk/Def/SpA/SpD/Spe per Lotus Flower. Lotus drains by 1 each turn while on the field. Attacking spends 1 Lotus per hit; chance to freeze scales with Lotus at move start. If it freezes or KOs, it spends 2 extra Lotus. When hit by a contact move while above 5 Lotus, it can freeze the attacker and spends 5 Lotus. Lotus regens by 1 each turn while benched (max 12).",
+		onStart(pokemon) {
+			if (pokemon.m.lotus === undefined) pokemon.m.lotus = 12;
+			pokemon.m.sennenUsed = false;
+			this.field.addPseudoWeather('offfieldfreezetick');
+		},
+		onSwitchIn(pokemon) {
+			pokemon.m.sennenUsed = false;
+			this.field.addPseudoWeather('offfieldfreezetick'); 
+		},
+		onModifyAtk(atk, pokemon) {
+			const lotus = pokemon.m.lotus ?? 12;
+			return this.chainModify(1 + 0.1 * lotus);
+		},
+		onModifyDef(def, pokemon) {
+			const lotus = pokemon.m.lotus ?? 12;
+			return this.chainModify(1 + 0.1 * lotus);
+		},
+		onModifySpA(spa, pokemon) {
+			const lotus = pokemon.m.lotus ?? 12;
+			return this.chainModify(1 + 0.1 * lotus);
+		},
+		onModifySpD(spd, pokemon) {
+			const lotus = pokemon.m.lotus ?? 12;
+			return this.chainModify(1 + 0.1 * lotus);
+		},
+		onModifySpe(spe, pokemon) {
+			const lotus = pokemon.m.lotus ?? 12;
+			return this.chainModify(1 + 0.1 * lotus);
+		},
+		// Drain 1 lotus at end of every turn while active
+		onResidual(pokemon) {
+			if (pokemon.m.lotus === undefined) pokemon.m.lotus = 12;
+			const oldLotus = pokemon.m.lotus;
+			if (pokemon.m.lotus > 0) pokemon.m.lotus -= 1;
+			if (oldLotus !== pokemon.m.lotus) {
+				this.add('-message', pokemon.name + "'s Lotus Flowers: " + oldLotus + " -> " + pokemon.m.lotus + " (end of turn drain)");
+			}
+			if (pokemon.m.lotus === 0) this.add('-message', pokemon.name + "'s Lotus Flowers ran dry!");
+		},
+		// Record lotus at START of the move (no template strings)
+		onPrepareHit(target, source, move) {
+			if (!move || move.category === 'Status') return;
+			const es: any = this.effectState;
+			// Reset per move per turn
+			if (es.lastTurn !== this.turn || es.lastMove !== move.id) {
+				es.lastTurn = this.turn;
+				es.lastMove = move.id;
+				es.lotusStart = source.m.lotus ?? 12;
+				es.lotusHandled = false;
+				(source.m as any).lotusStartThisMove = es.lotusStart;
+			}
+		},
+		// Make multihit spend lotus per HIT, and (optional) ensure power drops per hit even if stats are cached
+		onModifyMove(move, pokemon, target) {
+			if (!move || move.category === 'Status') return;
+			if ((move as any).lotusWrapped) return;
+			(move as any).lotusWrapped = true;
+			const oldOnBasePower = move.onBasePower;
+			move.onBasePower = function (basePower, source, target2, move2) {
+				if (source && (source as any).m) {
+					const startLotus = ((source as any).m as any).lotusStartThisMove;
+					const start = (startLotus === undefined ? ((source as any).m.lotus ?? 12) : startLotus);
+					const cur = ((source as any).m.lotus ?? 12);
+					const startMult = 1 + 0.1 * start;
+					const curMult = 1 + 0.1 * cur;
+					const ratio = curMult / startMult;
+					if (ratio !== 1) return (this as any).chainModify(ratio);
+				}
+				if (oldOnBasePower) return oldOnBasePower.call(this, basePower, source, target2, move2);
+			};
+			// Spend 1 lotus PER HIT
+			const oldOnHit = move.onHit;
+			move.onHit = function (target2, source2, move2) {
+				if (source2 && (source2 as any).m) {
+					const lotus = (source2 as any).m.lotus ?? 12;
+					if (lotus > 0) (source2 as any).m.lotus = lotus - 1;
+				}
+				if (oldOnHit) return oldOnHit.call(this, target2, source2, move2);
+			};
+		},
+		// Freeze chance and extra -2 once per move (uses lotusStart tracked above)
+		onAfterMove(pokemon, target, move) {
+			if (!target || target === pokemon) return;
+			if (!move || move.category === 'Status') return;
+			if (pokemon.fainted) return;
+			const hit = target.getMoveHitData(move)?.hit;
+			if (!hit) return;
+			const es: any = this.effectState;
+			if (es.lotusHandled) return;
+			es.lotusHandled = true;
+			const startLotus = (es.lotusStart ?? (pokemon.m.lotus ?? 12));
+			const beforeLotus = startLotus;
+			const chance = Math.max(0, Math.min(100, startLotus * 3));
+			let froze = false;
+			if (chance > 0 && this.randomChance(chance, 100)) {
+				const ok = target.trySetStatus('frz', pokemon, move);
+				if (ok) {
+					target.m.ssbFreezeTurns = 2;
+					froze = true;
+					this.add('-message', target.name + " was frozen by falling petals!");
+				}
+			}
+			if (froze || target.fainted) {
+				const cur = pokemon.m.lotus ?? 12;
+				pokemon.m.lotus = Math.max(0, cur - 2);
+			}
+			const afterLotus = pokemon.m.lotus ?? 12;
+			if (beforeLotus !== afterLotus) {
+				this.add('-message', pokemon.name + "'s Lotus Flowers: " + beforeLotus + " -> " + afterLotus + " (after attack)");
+			}
+			if (afterLotus === 0) this.add('-message', pokemon.name + "'s Lotus Flowers ran dry!");
+		},
+		// Contact retaliation freeze if lotus > 5: lose 5 lotus
+		onDamagingHit(damage, target, source, move) {
+			if (!source || source.fainted) return;
+			if (!move || !move.flags || !move.flags.contact) return;
+			const lotus = target.m.lotus ?? 12;
+			if (lotus <= 5) return;
+			const oldLotus = lotus;
+			const ok = source.trySetStatus('frz', target, move);
+			if (ok) {
+				source.m.ssbFreezeTurns = 3;
+				this.add('-message', source.name + " was flash-frozen by Daiguren Hyorinmaru!");
+			}
+			target.m.lotus = Math.max(0, lotus - 5);
+			if (oldLotus !== target.m.lotus) {
+				this.add('-message', target.name + "'s Lotus Flowers: " + oldLotus + " -> " + target.m.lotus + " (contact freeze retaliation)");
+			}
+		},
+	},	
 	// Flufi
 	forceofwill: {
 		name: "Force of Will",
