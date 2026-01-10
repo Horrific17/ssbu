@@ -2618,7 +2618,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			// Random Status Move
 			let r = this.random(9);
 			if (r === 0) source.addVolatile('laserfocus', source);
-			if (r === 1) source.side.addSlotCondition(source, 'Wish');
+			if (r === 1) this.actions.useMove('Wish', source);
 			if (r === 2) {
 				// Assist
 				const moves = [];
