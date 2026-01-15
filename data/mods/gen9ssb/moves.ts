@@ -274,6 +274,106 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 		type: "Fire",
 		target: "normal",
 	},
+	// Koiru
+	coilconnection: {
+		name: "Coil Connection",
+		gen: 9,
+		category: "Status",
+		type: "Electric",
+		pp: 40,
+		priority: 5,
+		accuracy: true,
+		flags: { snatch: 1, cantusetwice: 1 },
+		target: "self",
+		shortDesc: "Protects; contact burns. Swaps Coil Mode and resets Grade to D.",
+		desc: "Protects from attacking moves; contact burns. Swaps Coil Mode in order (Gravity -> Speed -> Regeneration -> Gravity). Resets Grade to D when swapping modes.",
+		volatileStatus: 'coilconnection',
+		onTryMove(target, source, move) {
+			// If in Fusion, this button becomes Hellhound Strike instead.
+			if (source.volatiles['coilfusion']) {
+				this.attrLastMove('[still]');
+				this.actions.useMove('hellhoundstrike', source, source.side.foe.active[source.position] || source);
+				return null;
+			}
+		},
+		onPrepareHit(target, source, move) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, 'Shift Gear', source);
+		},
+		onHit(target, source) {
+			// mode + grade reset happens here
+			if (!source.m.coilMode) source.m.coilMode = 'gravity';
+			const cur = source.m.coilMode;
+			let next: string = 'gravity';
+			if (cur === 'gravity') next = 'speed';
+			else if (cur === 'speed') next = 'regen';
+			else if (cur === 'regen') next = 'gravity';
+			else next = 'gravity';
+
+			source.m.coilMode = next;
+			source.m.coilGrade = 'D'; // reset on mode swap
+
+			this.add('-message', `${source.name} switched to ${next.toUpperCase()} Mode! (Grade D)`);
+		},
+	},
+	frostbitefusion: {
+		name: "Frostbite Fusion",
+		gen: 9,
+		category: "Physical",
+		type: "Fighting",
+		basePower: 160,
+		accuracy: 100,
+		pp: 1,
+		noPPBoosts: true,
+		priority: 0,
+		isZ: "fusioncoils",
+		flags: {},
+		shortDesc: "160 BP. Combines Ice/Fighting effectiveness. Enters Coil Fusion (3 turns).",
+		desc: "Deals damage. Effectiveness uses the better of Fighting or Ice. Then enters Coil Fusion for 3 turns: becomes Electric/Fighting, locked at B Grade, all modes at once, Coil Connection becomes Hellhound Strike.",
+		onPrepareHit(target, source, move) {
+			this.add('-anim', source, 'Collision Course', target);
+		},
+		onEffectiveness(typeMod, target, type) {
+			// take the better effectiveness between Fighting and Ice vs that defender type
+			// (If your dex build doesn't support getEffectiveness vs TypeName, swap this to a lookup you use elsewhere.)
+			const f = this.dex.getEffectiveness('Fighting', type as any);
+			const i = this.dex.getEffectiveness('Ice', type as any);
+			return Math.max(f, i);
+		},
+		onHit(target, source) {
+			source.addVolatile('coilfusion');
+		},
+		target: "normal",
+	},
+	hellhoundstrike: {
+		name: "Hellhound Strike",
+		gen: 9,
+		category: "Physical",
+		type: "Fighting",
+		pp: 5,
+		accuracy: 100,
+		priority: 0,
+		flags: {protect: 1, contact: 1},
+		target: "normal",
+		shortDesc: "BP scales by Speed ratio (user/target).",
+		desc: "BP scales by Speed ratio (user/target): 150 (>=4), 120 (>=3), 90 (>=2), 60 (>=1), 40 (<1).",
+		onTryMove(target, source, move) {
+			this.attrLastMove('[still]');
+		},
+		onPrepareHit(target, source, move) {
+			this.add('-anim', source, 'Meteor Assault', target);
+		},
+		basePowerCallback(pokemon, target) {
+			const s = pokemon.getStat('spe', false, true);
+			const t = target.getStat('spe', false, true);
+			const ratio = t ? (s / t) : 4;
+			if (ratio >= 4) return 150;
+			if (ratio >= 3) return 120;
+			if (ratio >= 2) return 90;
+			if (ratio >= 1) return 60;
+			return 40;
+		},
+	},	
 	// Lyssa
 	masochism: {
 		name: "Masochism",
