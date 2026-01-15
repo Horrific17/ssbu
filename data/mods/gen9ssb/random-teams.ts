@@ -110,6 +110,12 @@ export const ssbSets: SSBSets = {
 		signatureMove: 'Struggle',
 		evs: { hp: 252, spd: 4, spe: 252 }, nature: 'Hasty', shiny: true,
 	},
+	Koiru: {
+		species: 'Zeraora', ability: 'Triple Threat', item: 'Fusion Coils', gender: 'M',
+		moves: ['Fusion Bolt', 'Heat Crash', 'Drain Punch'],
+		signatureMove: 'Coil Connection',
+		evs: { hp: 252, atk: 196, spd: 60 }, nature: 'Jolly',
+	},	
 	Kozuchi: {
 		species: 'Tinkaton', ability: 'Scrapworker', item: 'Forged Hammer', gender: 'F',
 		moves: ['Gigaton Hammer', 'Play Rough', 'High Horsepower'],
