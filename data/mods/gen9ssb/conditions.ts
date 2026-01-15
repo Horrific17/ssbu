@@ -159,6 +159,62 @@ export const Conditions: { [id: IDEntry]: ModdedConditionData & { innateName?: s
 			this.add('-message', `${pokemon.name} finished charging!`);
 		},
 	},	
+	// Koiru - Tethers
+	coiltetherspeed: {
+		name: "Coil Tether Speed",
+		onStart(pokemon) {
+			this.add('-start', pokemon, 'Speed Tether');
+			this.add('-anim', pokemon, 'Dragon Dance', pokemon);
+		},
+		onModifySpe(spe, pokemon) {
+			return this.chainModify([5325, 4096]); // ~1.3x
+		},
+		onEnd(pokemon) {
+			this.add('-end', pokemon, 'Speed Tether');
+		},
+	},
+	coiltethergravity: {
+		name: "Coil Tether Gravity",
+		onStart(pokemon) {
+			this.add('-start', pokemon, 'Grav Tether');
+			this.add('-anim', pokemon, 'Iron Defense', pokemon);
+		},
+		onModifyWeight(weighthg, pokemon) {
+			return Math.floor(weighthg * 6);
+		},
+		onBasePower(basePower, pokemon, target, move) {
+			if (!move || move.category === 'Status' || !target) return;
+			const userW = pokemon.getWeight();
+			const targW = target.getWeight();
+			if (!targW) return;
+			const ratio = userW / targW;
+			let mult = 1;
+			if (ratio >= 6) mult = 1.5;
+			else if (ratio >= 5) mult = 1.4;
+			else if (ratio >= 4) mult = 1.3;
+			else if (ratio >= 3) mult = 1.2;
+			else if (ratio >= 2) mult = 1.1;
+			else if (ratio >= 1) mult = 1.05;
+			return this.chainModify(mult);
+		},
+		onEnd(pokemon) {
+			this.add('-end', pokemon, 'Grav Tether');
+		},
+	},
+	coiltetherregen: {
+		name: "Coil Tether Regen",
+		onStart(pokemon) {
+			this.add('-start', pokemon, 'Regen Tether');
+			this.add('-anim', pokemon, 'Aqua Ring', pokemon);
+		},
+		onResidual(pokemon) {
+			if (pokemon.fainted) return;
+			this.heal(pokemon.maxhp / 8, pokemon, pokemon);
+		},
+		onEnd(pokemon) {
+			this.add('-end', pokemon, 'Regen Tether');
+		},
+	},	
 	//Shigeki
 	bleeding: {
 		name: "Bleeding",

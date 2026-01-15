@@ -166,6 +166,17 @@ export const Items: import('../../../sim/dex-items').ModdedItemDataTable = {
 			},
 		},
 	},
+	// Koiru
+	fusioncoils: {
+		name: "Fusion Coils",
+		gen: 9,
+		shortDesc: "Allows Coil Connection to use the Z-Move Frostbite Fusion.",
+		desc: "If held, Coil Connection can be upgraded into the Z-Move Frostbite Fusion.",
+		zMove: "Frostbite Fusion",
+		zMoveFrom: "Fusion Bolt",
+		itemUser: ["Zeraora"],
+		onTakeItem: false,
+	},	
 	// Marvin
 	thehappyknife: {
 		name: "The Happy Knife",

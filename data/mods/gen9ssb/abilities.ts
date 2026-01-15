@@ -463,6 +463,88 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 			return critRatio + this.effectState.attacksTaken;
 		},
 	},
+	// Koiru
+	triplethreat: {
+		name: "Triple Threat",
+		gen: 9,
+		shortDesc: "3 modes w/ Grades D->S that tick each turn (even benched). Coil Connection swaps modes.",
+		desc: "Coil Connection swaps modes (Gravity/Speed/Regen). Grades D->S tick each turn and persist even benched. At end of S Grade turn, user is forced to switch and gives Tether to the incoming ally; grade becomes C. Grade resets to D when switching modes.",
+		onStart(pokemon) {
+			if (!pokemon.m.coilMode) pokemon.m.coilMode = 'gravity';
+			if (!pokemon.m.coilGrade) pokemon.m.coilGrade = 'D';
+			this.add('-message', `${pokemon.name} armed its coils! (${pokemon.m.coilMode.toUpperCase()} | Grade ${pokemon.m.coilGrade})`);
+		},
+		onSwitchIn(pokemon) {
+			const mode = (pokemon.m.coilMode ? String(pokemon.m.coilMode).toUpperCase() : 'GRAVITY');
+			const grade = (pokemon.m.coilGrade ? pokemon.m.coilGrade : 'D');
+			this.add('-message', pokemon.name + " enters: " + mode + " | Grade " + grade);
+		},
+		// ===== Mode buff helpers =====
+		onModifyAtk(atk, pokemon) {
+			const mode = pokemon.volatiles['coilfusion'] ? 'fusion' : pokemon.m.coilMode;
+			const g = pokemon.volatiles['coilfusion'] ? 'B' : (pokemon.m.coilGrade || 'D');
+			if (mode === 'gravity' || mode === 'fusion') {
+				const mult = (g === 'D') ? 1 :
+					(g === 'C') ? 1.2 :
+					(g === 'B') ? 1.3 :
+					(g === 'A') ? 1.4 : 1.5;
+				return this.chainModify(mult);
+			}
+			return;
+		},
+		onModifySpe(spe, pokemon) {
+			const mode = pokemon.volatiles['coilfusion'] ? 'fusion' : pokemon.m.coilMode;
+			const g = pokemon.volatiles['coilfusion'] ? 'B' : (pokemon.m.coilGrade || 'D');
+			if (mode === 'speed' || mode === 'fusion') {
+				const mult = (g === 'D') ? 1 :
+					(g === 'C') ? 1.2 :
+					(g === 'B') ? 1.3 :
+					(g === 'A') ? 1.4 : 1.5;
+				return this.chainModify(mult);
+			}
+			return;
+		},
+		// Weight scaling (Gravity + Fusion)
+		onModifyWeight(weighthg, pokemon) {
+			const mode = pokemon.volatiles['coilfusion'] ? 'fusion' : pokemon.m.coilMode;
+			const g = pokemon.volatiles['coilfusion'] ? 'B' : (pokemon.m.coilGrade || 'D');
+			if (mode !== 'gravity' && mode !== 'fusion') return;
+			const mult = (g === 'D') ? 2 :
+				(g === 'C') ? 4 :
+				(g === 'B') ? 6 :
+				(g === 'A') ? 8 : 10;
+			return Math.floor(weighthg * mult);
+		},
+		onModifyAccuracy(accuracy, target, source, move) {
+			if (!move || move.category === 'Status') return;
+			if (target !== this.effectState.target) return;
+			const mode = target.volatiles['coilfusion'] ? 'fusion' : target.m.coilMode;
+			const g = target.volatiles['coilfusion'] ? 'B' : (target.m.coilGrade || 'D');
+			if (mode !== 'speed' && mode !== 'fusion') return;
+			if (accuracy === true) return;
+			const evMult =
+				(g === 'D') ? 1.1 :
+				(g === 'C') ? 1.2 :
+				(g === 'B') ? 1.3 :
+				(g === 'A') ? 1.4 : 1.5;
+			return this.chainModify(1 / evMult);
+		},
+		// Regen healing while ACTIVE (Fusion also counts)
+		onResidual(pokemon) {
+			const mode = pokemon.volatiles['coilfusion'] ? 'fusion' : pokemon.m.coilMode;
+			const g = pokemon.volatiles['coilfusion'] ? 'B' : (pokemon.m.coilGrade || 'D');
+			if (mode === 'regen' || mode === 'fusion') {
+				// D 1/16, C 1/8, B 1/4, A 1/2, S 1/2
+				const frac =
+					(g === 'D') ? [1, 16] :
+					(g === 'C') ? [1, 8] :
+					(g === 'B') ? [1, 4] :
+					[1, 2];
+				this.heal(pokemon.maxhp * (frac[0] / frac[1]), pokemon, pokemon, this.dex.abilities.get('triplethreat'));
+				this.add('-anim', pokemon, 'Recover', pokemon);
+			}
+		},
+	},	
 	// Marvin
 	murderousmimic: {
 		name: "Murderous Mimic",
