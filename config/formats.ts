@@ -3158,6 +3158,27 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 						);
 					}
 				}
+				// Triple Threat (Koiru): Regen S-grade heals ALL benched allies by 1/4 (once per side per turn)
+				if (pokemon.getAbility().id === 'triplethreat') {
+					if (pokemon.fainted || !pokemon.isActive) continue;
+					// fusion shouldn't do this
+					if (pokemon.volatiles['coilfusion']) continue;
+					// only in regen mode + S grade
+					if (pokemon.m.coilMode !== 'regen' || pokemon.m.coilGrade !== 'S') continue;
+					const sm: any = (pokemon.side as any).m || ((pokemon.side as any).m = {});
+					if (sm.regenSHealTurn === this.turn) continue;
+					sm.regenSHealTurn = this.turn;
+					for (const ally of pokemon.side.pokemon) {
+						if (ally.fainted || ally.isActive) continue;
+						const amt = Math.floor(ally.maxhp / 4);
+						if (amt <= 0) continue;
+						ally.hp = Math.min(ally.maxhp, ally.hp + amt);
+						const hpText = (typeof (ally as any).getHealth === 'function')
+							? (ally as any).getHealth()
+							: (ally as any).getHealth;
+						this.add('-heal', ally, hpText);
+					}
+				}
 			}
 			for (const pokemon of this.getAllActive()) {
 				if (pokemon.species.id === 'mimikyubusted') {
@@ -3166,6 +3187,39 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 						pokemon.abilityState.dollDur = 0;
 					} else if (pokemon.abilityState.dollDur) {
 						pokemon.abilityState.dollDur--;
+					}
+				}
+				// Triple Threat: ACTIVE ONLY grade tick + S-grade forced switch + tether setup
+				if (pokemon.getAbility().id === 'triplethreat') {
+					if (pokemon.fainted) continue;
+					if (!(pokemon as any).m) (pokemon as any).m = {};
+					if (!(pokemon.side as any).m) (pokemon.side as any).m = {};
+					const m: any = (pokemon as any).m;
+					const sm: any = (pokemon.side as any).m;
+					if (pokemon.volatiles['coilfusion']) { // Fusion locks grade at B
+						m.coilGrade = 'B';
+					} else {
+						if (m.coilTickTurn !== this.turn) {
+							m.coilTickTurn = this.turn;
+							const order = ['D', 'C', 'B', 'A', 'S'];
+							if (!m.coilGrade) m.coilGrade = 'D';
+							// Finished an S-grade turn -> tether + drop to C + force switch
+							if (m.coilGrade === 'S') {
+								m.coilGrade = 'C';
+								// queue tether for next switch-in (store on side.m)
+								const sm: any = (pokemon.side as any).m || ((pokemon.side as any).m = {});
+								sm.pendingTether = pokemon.m.coilMode || 'gravity';
+								sm.pendingTetherSource = pokemon;
+								pokemon.switchFlag = true;
+								this.add('-message', pokemon.name + " tethered an ally! (Grade drops to C)");
+							} else {
+								const idx = Math.max(0, order.indexOf(m.coilGrade));
+								const next = order[Math.min(4, idx + 1)];
+								const old = m.coilGrade;
+								m.coilGrade = next;
+								this.add('-message', pokemon.name + "'s Grade: " + old + " -> " + next);
+							}
+						}
 					}
 				}
 			}
@@ -3207,6 +3261,17 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 				pokemon.side.reviveOnSwitchIn = false;
 				this.actions.useMove('Revival Blessing', pokemon);
 			}
+			// Coil Tether: apply to the next mon that comes in
+			const sm: any = (pokemon.side as any).m;
+			if (sm?.pendingTether) {
+				let key = this.toID(sm.pendingTether);
+				if (key === 'coiltethergravity' || key === 'speed') key = 'coiltetherspeed';
+				else if (key === 'coiltetherregen' || key === 'regen' || key === 'regeneration') key = 'coiltetherregen';
+				else key = 'coiltethergravity';
+				pokemon.addVolatile(key, sm.pendingTetherSource || pokemon);
+				delete sm.pendingTether;
+				delete sm.pendingTetherSource;
+			}			
 		},
 		onUpdate() {
 			for (const pokemon of this.getAllPokemon()) {
