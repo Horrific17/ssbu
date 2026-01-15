@@ -125,6 +125,11 @@ export const Pokedex: { [k: string]: ModdedSpeciesData } = {
 		types: ['Electric', 'Steel'],
 		abilities: { 0: "Battery Life" },
 	},
+	zeraora: {
+		inherit: true,
+		baseStats: { hp: 102, atk: 112, def: 75, spa: 88, spd: 80, spe: 143 },
+		abilities: { 0: "Triple Threat" },
+	},	
 	decidueyehisui: {
 		inherit: true,
 		baseStats: { hp: 88, atk: 112, def: 80, spa: 95, spd: 95, spe: 93 },
