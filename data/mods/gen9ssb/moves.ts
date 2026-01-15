@@ -3255,12 +3255,12 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 	},
 	// Gadget
 	capitalcannon: {
-		accuracy: 80,
+		accuracy: 100,
 		basePower: 0,
 		category: "Physical",
 		name: "Capital Cannon",
-		desc: "Power increases by 20 BP for each coin the user has collected through Cash Grab. Uses a maximum of 10 coins (200 BP). Fails if the user has no coins. Neutral effectiveness against all types.",
-		shortDesc: "Power determined by coins. Max 10 coins/200BP.",
+		desc: "+10 base power for each coin the user has collected through Cash Grab, up to 300 base power. Neutral effectiveness against all types.",
+		shortDesc: "+10 bp per coin, max 300; Neutral vs. all types.",
 		pp: 5,
 		flags: { protect: 1 },
 		onTryMove(pokemon, target, move) {
@@ -3268,22 +3268,22 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 			if (!pokemon.m.coins) {
 				this.add('-message', `${pokemon.name} used Capital Cannon...`)
 				this.add('-anim', pokemon, 'Splash', pokemon);
-				this.add('-message', `...but couldn't shoot from an empty cannon!`);
+				this.add('-message', `...but couldn't fire from an empty cannon!`);
 				return false;
 			}
 		},
 		onPrepareHit(target, source) {
 			if (!source.m.coins) return;
 			this.add('-anim', source, 'Taunt', target);
-			this.add('-anim', source, 'Steel Beam', target);
+			this.add('-anim', source, 'Spirit Shackle', source);
+			this.add('-anim', source, 'Hyper Beam', target);
 		},
 		basePowerCallback(pokemon, target, move) {
 			if (!pokemon.m.coins) return;
-			if (pokemon.m.coins > 10) {
-				// Capital Cannon only uses up to 10 coins at a time
-				return 200;
+			if (pokemon.m.coins >= 30) {
+				return 300;
 			} else {
-				return 20 * pokemon.m.coins;
+				return 100 * pokemon.m.coins;
 			}
 		},
 		onEffectiveness(typeMod, target, type) {
