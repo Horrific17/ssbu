@@ -41,6 +41,31 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 	},
 	*/
 	// Please keep sets organized alphabetically based on staff member name!
+	// Mel
+	deepclaw: {
+		name: "Deep Claw",
+		category: "Physical",
+		gen: 9,
+		shortDesc: "If target used healing move this or the last turn = 2x damage.",
+		desc: "Deals double damage if the target used a healing move this turn or last turn.",
+		basePower: 100,
+		accuracy: 100,
+		pp: 5,
+		priority: 0,
+		flags: { protect: 1, metronome: 1, contact: 1 },
+		type: "Ghost",
+		target: "normal",
+		onBasePower(basePower, source, target, move) {
+		const lastMove = target.lastMove;
+		if (
+			lastMove &&
+			lastMove.category === 'Status' &&
+			lastMove.heal
+		) {
+			return this.chainModify(2);
+			}
+		},
+	},
 	// Hooked Doll
 	retribution: {
 		name: "Retribution",
