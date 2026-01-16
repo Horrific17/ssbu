@@ -260,6 +260,12 @@ export const ssbSets: SSBSets = {
 		signatureMove: 'Wuji',
 		evs: { hp: 120, atk: 136, spe: 252 }, ivs: { spa: 0 }, nature: 'Jolly',
 	},
+	'The Stuff': {
+		species: 'Hypno', ability: 'Run Away', item: 'Pocketful of Posies', gender: 'F',
+		moves: ['Charm', 'Pound', 'Harden'],
+		signatureMove: 'Splash',
+		evs: {}, nature: 'Calm',
+	},
 	Toshiro: {
 		species: 'Sandslash-Alola', ability: 'Daiguren Hyorinmaru', item: 'Never-Melt Ice', gender: 'M',
 		moves: ['Icicle Spear', 'Glaive Rush', 'Aqua Cutter'],
