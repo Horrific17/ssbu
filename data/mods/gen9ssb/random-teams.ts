@@ -90,14 +90,12 @@ export const ssbSets: SSBSets = {
 		signatureMove: 'Coin Clash',
 		evs: { hp: 252, atk: 252, def: 252, spa: 252, spd: 252, spe: 252 }, nature: 'Jolly',
 	},
-	/*
-	Graaz: {
-		species: 'Exploud', ability: 'Feral Instinct', item: 'The Mighty Cloth', gender: 'M',
-		moves: ['Rage', 'Circle Throw', 'Thunderous Kick'],
-		signatureMove: 'Wild Magic Frenzy',
-		evs: { hp: 224, atk: 252, spe: 32 }, nature: 'Adamant',
+	'Mink the Putrid': {
+		species: 'Venusaur-Mega', ability: 'Wicked Stench', item: 'Corpse Lily', gender: 'M',
+		moves: ['Giga Drain', 'Gunk Shot', 'Earthquake'],
+		signatureMove: 'Transfuse Toxin',
+		evs: { hp: 248, atk: 8, def: 252 }, nature: 'Relaxed',
 	},
-	*/
 	'Hooked Doll': {
 		species: 'banette', ability: 'Vindication', item: 'Banettite', Gender: 'F',
 		moves: ['Throat Chop', 'Gunk Shot', 'Spite'],
